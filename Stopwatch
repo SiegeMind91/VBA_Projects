@@ -1,0 +1,64 @@
+'This code assumes the creation of a form with 3 buttons; Start, Stop and Reset
+
+Dim dteStart As Date, dteFinish As Date
+Dim dteStopped As Date, dteElapsed As Date
+Dim boolStopPressed As Boolean, boolResetPressed As Boolean
+Dim boolStartPressed As Boolean
+
+
+Private Sub btnReset_Click()
+    
+    dteStopped = 0
+    dteStart = 0
+    dteElapsed = 0
+    Label1 = "00:00:00"
+    boolResetPressed = True
+    boolStartPressed = False
+    boolStopPressed = False
+    
+End Sub
+
+Private Sub btnStart_Click()
+
+Start_timer:
+    dteStart = Time
+    boolStopPressed = False
+    boolResetPressed = False
+
+Timer_Loop:
+    DoEvents
+    dteFinish = Time
+    dteElapsed = dteFinish - dteStart + dteStopped
+    If Not boolStopPressed = True Then
+        Label1 = Format(dteElapsed, "hh:mm:ss")
+        If boolResetPressed = True Then GoTo Start_timer
+        GoTo Timer_Loop
+    Else
+        Exit Sub
+    End If
+    
+End Sub
+
+Private Sub btnStop_Click()
+
+    boolStopPressed = True
+    boolStartPressed = False
+    boolResetPressed = False
+    dteStopped = dteElapsed
+    If boolStartPressed = True Then
+        Label1 = dteStopped + dteElapsed
+    Else
+        Exit Sub
+    End If
+
+End Sub
+
+Private Sub Label1_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+
+Label1 = "00:00:00"
+
+End Sub
