@@ -1,0 +1,85 @@
+'This macro takes a string value name and then finds that person in your outlook contacts
+'Then it loops through a given number of times to find the title of that person and their manager
+'The sheet it's pulling from was set up as Initial User | Title | Superior | Title | Superior | Title | etc.
+'  where Initial User is the starting string value column and all other columns are filled from it
+
+
+Sub Find_Hierarchy()
+    'Set up Excel variables
+    Dim wb As Excel.Workbook: Set wb = ThisWorkbook
+    Dim ws As Excel.Worksheet: Set ws = wb.Sheets("Hierarchy")
+    Dim rowCount As Long
+    Dim colCount As Long
+    'Set up Outlook variables
+    Dim OutlookApp As Outlook.Application: Set OutlookApp = New Outlook.Application
+    Dim myNamespace As Outlook.Namespace
+    Dim myRecipient As Outlook.Recipient
+    Dim objAE As Outlook.AddressEntry
+    Dim objEU As Outlook.ExchangeUser
+    Dim strManager As String
+    
+    'Set up the workspace as an outlook application MAPI
+    Set myNamespace = OutlookApp.GetNamespace("MAPI")
+    
+    'Find count of users to be checked, then loop through and add their information to the sheet
+    rowCount = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    For i = 2 To rowCount
+        
+        'Setting the starting column
+        colCount = 2
+    
+        'Look for a given name in outlook and grab the recipient object for it, then resolve
+        Set myRecipient = myNamespace.CreateRecipient(ws.Range("A" & i))
+        myRecipient.Resolve
+        
+        'Checking that it was resolved before we grab the information
+        If myRecipient.Resolved Then
+        
+            'Grab the Address Entry object and the Exchange User object
+            Set objAE = myNamespace.GetAddressEntryFromID(myRecipient.EntryID)
+            Set objEU = objAE.GetExchangeUser
+            ws.Cells(i, colCount) = objEU.JobTitle 'Adding the job title of the selected user
+            ws.Cells(i, colCount + 1) = objAE.Manager 'Adding the manager of the selected user to the worksheet
+            
+            'Incrementing the column
+            colCount = colCount + 2
+            
+            For j = 1 To 5
+                'This case is set up for the last column of the sheet, where we need to do some logic to grab the title, but don't need the superior to be added
+                If j = 5 Then
+                    'Grab the VP field, then set our recipient as the manager of the original user
+                    strManager = objAE.Manager
+                    Set myRecipient = myNamespace.CreateRecipient(strManager)
+                    myRecipient.Resolve
+                    
+                    'Checking that it was resolved before we grab the information
+                    If myRecipient.Resolved Then
+                        'Grab the Address Entry object and the Exchange User object
+                        Set objAE = myNamespace.GetAddressEntryFromID(myRecipient.EntryID)
+                        Set objEU = objAE.GetExchangeUser
+                        ws.Cells(i, colCount) = objEU.JobTitle 'Adding the job title of the selected user
+                    End If
+                
+                'Any other case we need to grab the title, then grab the superior info to be able to continue the loop
+                Else
+                    'Grab the Manager field and set our recipient as the manager of the original user
+                    Set myRecipient = myNamespace.CreateRecipient(objAE.Manager)
+                    myRecipient.Resolve
+                    
+                    'Checking that it was resolved before we grab the information
+                    If myRecipient.Resolved Then
+                        'Grab the Address Entry object and the Exchange User object
+                        Set objAE = myNamespace.GetAddressEntryFromID(myRecipient.EntryID)
+                        Set objEU = objAE.GetExchangeUser
+                        ws.Cells(i, colCount) = objEU.JobTitle 'Adding the job title of the selected user
+                        ws.Cells(i, colCount + 1) = objAE.Manager 'Adding the manager of the selected user to the worksheet
+                        
+                        'Incrementing the column
+                        colCount = colCount + 2
+                    End If
+                End If
+            Next j
+        End If
+    Next i
+    
+End Sub
