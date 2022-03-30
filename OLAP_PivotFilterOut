@@ -1,0 +1,68 @@
+'These functions only work for OLAP pivot tables, not the regular ones
+
+Public Sub FilterOutValues()
+    Dim wb As Excel.Workbook: Set wb = ThisWorkbook
+    Dim ws As Excel.Worksheet: Set ws2 = wb.Sheets("Your Sheet")
+    Dim pt As PivotTable
+    Dim pf As PivotField
+    Dim arr As Variant
+    
+    'Setting up our Pivot table objects
+    Set pt = ws.PivotTables("PivotTable1")
+    Set pf = pt.PivotFields(1)
+    
+    'Get the array of values to remove from the pivot table
+    arr = Add_Values_ToArray()
+
+    'Remove the array values from the pivot table
+    With pf
+        .ClearAllFilters 'Clear All The Filters
+        .CubeField.IncludeNewItemsInFilter = True 'Enable this so that HiddenItemsList works
+        .HiddenItemsList = arr
+    End With
+End Sub
+
+
+Private Function Add_Values_ToArray() As Variant
+    Dim wb As Excel.Workbook: Set wb = ThisWorkbook
+    Dim ws As Excel.Worksheet: Set ws = wb.Sheets("Your Sheet")
+    Dim i, r, rowCount As Long
+    
+    'Grabbing the rowCount of the values to be added to the array
+    rowCount = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    'Resizing the array
+    ReDim arr(1 To (rowCount))
+    
+    'Start the loop to add values to the array
+    i = 1
+    For r = 1 To rowCount
+        If r = 1 Then
+            arr(i) = "[Range].[YourPivotField].&" 'This cares for the blank rows
+            i = i + 1
+        Else
+            arr(i) = "[Range].[YourPivotField].&[" & ws.Range("A" & r).Value & "]"
+            i = i + 1
+        End If
+    Next r
+
+    'Return the array to the function it was called from
+    Add_Values_ToArray = arr
+
+End Function
+
+'You can use this function to get the names of the pivot fields if you don't know them
+Public Sub names()
+    Dim pt As PivotTable
+    Dim pf As PivotField
+
+    Set pt = ThisWorkbook.Sheets("Staging").PivotTables("PivotTable1")
+
+    With pt
+        Debug.Print pt.PivotFields(1).Name
+    End With
+
+    For Each pf In pt.PivotFields
+        Debug.Print pf.Name
+    Next
+End Sub
