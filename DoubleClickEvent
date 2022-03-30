@@ -1,0 +1,27 @@
+'A couple of different ways to handle the DoubleClickCellEvent
+
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+    
+    If Target.Row = 2 And Target.Column = 2 Then
+        Cancel = True
+        ThisWorkbook.Sheets("End").Visible = -1
+        ThisWorkbook.Sheets("End").Activate
+    End If
+
+End Sub
+
+
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+    Dim wb As Excel.Workbook: Set wb = ThisWorkbook
+    Dim ws As Excel.Worksheet: Set ws = wb.Sheets("Data")
+    Dim rowCount As Long
+    
+    If Not Intersect(Target, Range("I4")) Is Nothing Then
+        wb.Sheets("Sheet1").Range("A2").Select
+        On Error Resume Next
+          ws.ShowAllData
+          rowCount = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+          ws.Range("$A$1:$N$" & rowCount).AutoFilter Field:=14, Criteria1:="John Smith"
+          ws.Activate
+    End If
+End Sub
