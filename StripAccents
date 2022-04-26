@@ -1,0 +1,34 @@
+'This is a simple script for replacing an accented character with a "normal" character
+Public Sub StripAccent()
+    Dim wb As Excel.Workbook: Set wb = ThisWorkbook
+    Dim ws As Excel.Worksheet: Set ws = wb.Sheets("Main")
+    Dim A, B As String
+    Dim strInput, strOutput As String
+    Dim i, j, rowCount As Long
+    
+    'These are the two strings that we'll use for the swap
+    'If a character is found matching in the first string, it will replace it with the same character from the second
+    Const AccChars = "ŠŽšžŸÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖÙÚÛÜÝàáâãäåçèéêëìíîïðñòóôõöùúûüýÿ"
+    Const RegChars = "SZszYAAAAAACEEEEIIIIDNOOOOOUUUUYaaaaaaceeeeiiiidnooooouuuuyy"
+    
+    'Grab the number of rows we have to check
+    rowCount = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    'Loop through the rows
+    For j = 2 To rowCount
+        'Grab the original value
+        strInput = ws.Range("A" & j)
+        
+        'Replace any matches
+        For i = 1 To Len(AccChars)
+            A = Mid(AccChars, i, 1)
+            B = Mid(RegChars, i, 1)
+            strOutput = Replace(strInput, A, B)
+            strInput = strOutput
+        Next
+        
+        'Paste the new value into the second column
+        ws.Range("B" & j) = strOutput
+    Next j
+    
+End Sub
