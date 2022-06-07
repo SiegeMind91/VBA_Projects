@@ -1,0 +1,34 @@
+Sub AzureSQLConnection()
+    Dim cn as ADODB.Connection
+    Dim rs as ADODB.Recordset
+    Dim sqlQuery as String
+    
+    'Open a connection
+    Set cn = New ADODB.Connection 
+    cn.Open _
+            "Driver={ODBC Driver 17 for SQL Server};" & _
+            "Server=tcp:yourserver.database.windows.net,1433;" & _
+            "Database=yourdb;" & _
+            "Trusted_Connection=no;" & _
+            "Authentication=ActiveDirectoryPassword;" & _
+            "UID=yourEmail;pwd=yourPassword"
+            
+            'This version of the connection string uses only UserID (UID), however there are others;
+            'Authentication=ActiveDirectoryInteractive; <-- Use this one if you want the user to see the authentication pop-ups
+            'Authentication=ActiveDirectoryIntegrated <-- Use this one if you want the authentication handled without user interaction
+            'ActiveDirectoryPassword  <-- Use this one if you have a password
+    
+    'Executing the query against the db
+    strQuery = "SELECT TOP 100 * FROM YourDb.YourSchema.YourTable")
+    Set rs = cn.Execute(strQuery)
+    
+    'Pulling the records into the first sheet of the book
+    ThisWorkbook.Sheets(1).Range("A2").CopyFromRecordset rs
+   
+    'Close out of the recordset and connections
+    rs.Close
+    Set rs = Nothing
+    cn.Close    
+    Set cn = Nothing
+
+End Sub
