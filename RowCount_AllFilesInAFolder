@@ -1,0 +1,35 @@
+'This script will count the rows in each file in a selected folder
+
+Sub LoopThroughFiles()
+    Dim wb As Excel.Workbook: Set wb = ThisWorkbook
+    Dim ws As Excel.Worksheet: Set ws = wb.Sheets(1)
+    Dim wb2 As Excel.Workbook
+    Dim MyObj As Object: Set MyObj = New FileSystemObject
+    Dim MySource As Object
+    Dim file As Variant
+    Dim sheetCount, rowCount As Long
+    Dim strDate As String
+   
+    Set MySource = MyObj.GetFolder("C:\Users\546246")
+    sheetCount = 2
+    
+    Application.ScreenUpdating = False
+    
+    For Each file In MySource.Files
+        ws.Range("A" & sheetCount) = file.Name
+        strDate = Right(file.Name, 10)
+        strDate = Left(strDate, 6)
+        strDate = Left(strDate, 2) & "/" & Mid(strDate, 3, 2) & "/" & Right(strDate, 2)
+        ws.Range("B" & sheetCount) = strDate
+         
+        Set wb2 = Workbooks.Open(file)
+        rowCount = wb2.Sheets(1).Cells(wb2.Sheets(1).Rows.Count, "A").End(xlUp).Row
+        ws.Range("C" & sheetCount) = rowCount
+        wb2.Close
+        
+        sheetCount = sheetCount + 1
+    Next file
+   
+    Application.ScreenUpdating = True
+   
+End Sub
