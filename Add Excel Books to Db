@@ -1,0 +1,191 @@
+Public Sub CreateArchive()
+    Dim wb As Excel.Workbook: Set wb = ThisWorkbook
+    Dim wbRCI As Excel.Workbook
+    Dim wsRCI As Excel.Worksheet
+    Dim cn As New ADODB.Connection
+    Dim rs As New ADODB.Recordset
+    Dim f As Office.FileDialog
+    Dim Item As Variant
+    Dim rowCount, i, j, k As Long
+    Dim strSQL, dbPath As String
+    Dim rngColumnHelp As Excel.Range
+    Dim arrRCIWeeks As Variant
+    Dim ownNamCol, gstNamCol, chkInCol, statusCol, noteCol, nightsCol As Integer
+    Dim arrRCIPoints As Variant
+    Dim arrIIPoints As Variant
+    
+    'Setting up arrays to help with columns
+    arrRCIWeeks = Array("Owner Name", "Guest Name", "Check-In", "Status", "Notes")
+    arrRCIPoints = Array("Guest Name", "Check-In", "Nights", "Status", "Notes")
+    arrIIPoints = Array("Owner Name", "Guest Name", "Check-In", "Notes")
+
+    'Setting up database connection
+    dbPath = "\\Yourpath\Goes\Here\YourDb.accdb"
+    
+    'Connect to database
+    cn.Open "Provider = Microsoft.ACE.OLEDB.12.0;Data Source=" & dbPath
+
+FileSelection:
+    'Setting up particulars for file picker
+    Set f = Application.FileDialog(msoFileDialogFilePicker)
+    f.AllowMultiSelect = True
+    f.InitialFileName = "\\Your\Initial\Path\Name"
+    f.Filters.Clear
+    f.Filters.Add "RCI", "*.xls, *.xlsx"
+    f.Show
+    
+    If f.SelectedItems.Count = 0 Then
+        MsgBox "It appears you didn't select an RCI file, please try again."
+        GoTo FileSelection:
+    End If
+    
+    'Open selected file(s) and grab suppression items
+    For Each Item In f.SelectedItems
+        Set wbRCI = Workbooks.Open(Item)
+        Set wsRCI = wbRCI.Sheets(1)
+        rowCount = wsRCI.Cells(wsRCI.Rows.Count, "A").End(xlUp).Row
+        
+        If InStr(1, wbRCI.Name, "RCI Weeks") > 0 Then
+            rs.Open "[RCI_Weeks]", cn, adOpenForwardOnly, adLockOptimistic
+            
+            'Loops through and sets the columns up
+            For k = 0 To UBound(arrRCIWeeks)
+                Set rngColumnHelp = wsRCI.Cells.Find(What:=arrRCIWeeks(k), Lookat:=xlWhole)
+                
+                Select Case k
+                    Case 0
+                        ownNamCol = rngColumnHelp.Column
+                    Case 1
+                        gstNamCol = rngColumnHelp.Column
+                    Case 2
+                        chkInCol = rngColumnHelp.Column
+                    Case 3
+                        statusCol = rngColumnHelp.Column
+                    Case 4
+                        noteCol = rngColumnHelp.Column
+                End Select
+                
+                Set rngColumnHelp = Nothing
+            Next k
+            
+            'Loops through each record in the selected file and adds them to the correct database table
+            For i = 2 To rowCount
+                With rs
+                    .AddNew
+                    .Fields("Owner_Name") = wsRCI.Cells(i, ownNamCol)
+                    .Fields("Guest_Name") = wsRCI.Cells(i, gstNamCol)
+                    .Fields("Check-In_Date") = wsRCI.Cells(i, chkInCol)
+                    .Fields("Status") = wsRCI.Cells(i, statusCol)
+                    .Fields("Reservation_Number") = wsRCI.Cells(i, noteCol)
+                    .Update
+                End With
+            Next i
+            
+            'Resetting Variables for next file
+            ownNamCol = 0
+            gstNamCol = 0
+            chkInCol = 0
+            statusCol = 0
+            noteCol = 0
+            
+        ElseIf InStr(1, wbRCI.Name, "RCI Points") > 0 Then
+            rs.Open "[RCI_Points]", cn, adOpenForwardOnly, adLockOptimistic
+        
+            'Loops through and sets the columns up
+            For k = 0 To UBound(arrRCIPoints)
+                Set rngColumnHelp = wsRCI.Cells.Find(What:=arrRCIPoints(k), Lookat:=xlWhole)
+                
+                Select Case k
+                    Case 0
+                        gstNamCol = rngColumnHelp.Column
+                    Case 1
+                        chkInCol = rngColumnHelp.Column
+                    Case 2
+                        nightsCol = rngColumnHelp.Column
+                    Case 3
+                        statusCol = rngColumnHelp.Column
+                    Case 4
+                        noteCol = rngColumnHelp.Column
+                End Select
+                
+                Set rngColumnHelp = Nothing
+            Next k
+        
+            'Loops through each record in the selected file and adds them to the correct database table
+            For i = 2 To rowCount
+                With rs
+                    .AddNew
+                    .Fields("Guest_Name") = wsRCI.Cells(i, gstNamCol)
+                    .Fields("Check-In_Date") = wsRCI.Cells(i, chkInCol)
+                    .Fields("Nights") = wsRCI.Cells(i, nightsCol)
+                    .Fields("Status") = wsRCI.Cells(i, statusCol)
+                    .Fields("Reservation_Number") = wsRCI.Cells(i, noteCol)
+                    .Update
+                End With
+            Next i
+            
+            'Resetting Variables for next file
+            gstNamCol = 0
+            chkInCol = 0
+            nightsCol = 0
+            statusCol = 0
+            noteCol = 0
+            
+        ElseIf InStr(1, wbRCI.Name, "II Points") > 0 Then
+            rs.Open "[II_Arrivals]", cn, adOpenForwardOnly, adLockOptimistic
+        
+            'Loops through and sets the columns up
+            For k = 0 To UBound(arrIIPoints)
+                Set rngColumnHelp = wsRCI.Cells.Find(What:=arrIIPoints(k), Lookat:=xlWhole)
+                
+                Select Case k
+                    Case 0
+                        ownNamCol = rngColumnHelp.Column
+                    Case 1
+                        gstNamCol = rngColumnHelp.Column
+                    Case 2
+                        chkInCol = rngColumnHelp.Column
+                    Case 4
+                        noteCol = rngColumnHelp.Column
+                End Select
+                
+                If noteCol = 0 Then
+                    noteCol = 4
+                End If
+                
+                Set rngColumnHelp = Nothing
+            Next k
+        
+            'Loops through each record in the selected file and adds them to the correct database table
+            For i = 2 To rowCount
+                With rs
+                    .AddNew
+                    .Fields("Owner_Name") = wsRCI.Cells(i, ownNamCol)
+                    .Fields("Guest_Name") = wsRCI.Cells(i, gstNamCol)
+                    .Fields("Check-In_Date") = wsRCI.Cells(i, chkInCol)
+                    .Fields("Reservation_Number") = wsRCI.Cells(i, noteCol)
+                    .Update
+                End With
+            Next i
+            
+            'Resetting Variables for next file
+            ownNamCol = 0
+            gstNamCol = 0
+            chkInCol = 0
+            noteCol = 0
+            
+        Else
+            MsgBox "Database Table Not Set"
+        End If
+        
+        rs.Close
+        
+        Application.DisplayAlerts = False
+        wbRCI.Close
+        Application.DisplayAlerts = True
+NextFile:
+        Set wsRCI = Nothing
+        Set wbRCI = Nothing
+    Next Item
+    
+End Sub
