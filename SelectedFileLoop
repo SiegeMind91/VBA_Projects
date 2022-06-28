@@ -1,0 +1,127 @@
+'This Macro allows you to select multiple files and then do something to those files
+'In this particular case, we're fixing a date format that comes out unusable
+
+Sub LoopThroughSelectedBooks()
+    Dim varFile As Variant 'Used to loop through each workbook in filepicker
+    Dim wb As Excel.Workbook 'The workbook variable we'll use to represent the current file
+    Dim ws As Excel.Worksheet 'The current worksheet, just to make the code a little cleaner
+    Dim i, j, rowCount As Long 'Our looping variables and the total rows of the current file
+    Dim arrMonth As Variant 'This helps us with the lookup table we'll need
+   
+    'Dealing with error handling and efficiency
+    'On Error Resume Next 'Turned this off for now, I'd rather see an error
+    Application.ScreenUpdating = False
+    
+    'Creating the Month array
+    arrMonth = PopulateTheArray()
+    
+    'Opens the folder picker dialog to allow user selection, then adds files to an array
+    With Application.FileDialog(msoFileDialogFilePicker)
+        .Title = "Please select some files"
+        .Show
+        .AllowMultiSelect = True
+        .Filters.Clear
+        
+        'If no files are selected, exit the macro
+        If .SelectedItems.Count = 0 Then 'If no files are selected, exit
+            MsgBox "You did not select a folder"
+            Exit Sub
+        End If
+        
+        'Set the array size to match the number of files we selected
+        ReDim arrFileNames(1 To .SelectedItems.Count) As Variant
+        
+        'Loop through each selected item and add it to our file name array
+        For Each varFile In .SelectedItems
+            i = i + 1
+            arrFileNames(i) = varFile
+        Next varFile
+    End With
+
+    'Opens each file, then applies some formatting to some of the columns
+    For j = 1 To UBound(arrFileNames)
+        'Open the workbook, set up a worksheet variable
+        Set wb = Workbooks.Open(arrFileNames(j))
+        Set ws = wb.Sheets(1)
+        
+        'Set up the vlookup table
+        ws.Range("BI1") = "Month"
+            For mnth = 1 To 12
+                ws.Range("BI" & (mnth + 1)) = arrMonth(1, mnth)
+            Next mnth
+        ws.Range("BJ1") = "Number"
+            For num = 1 To 12
+                ws.Range("BJ" & (num + 1)) = arrMonth(2, num)
+            Next num
+        
+        'Grab the rowCount
+        rowCount = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+        
+        'Apply the functions - Adjusts the date from the SAS format to a useable format
+        ws.Range("BD2").Formula = "=DATE(MID(C2, 6, 4), VLOOKUP(MID(C2, 3, 3), $BI$2:$BJ$13, 2, FALSE), LEFT(C2, 2))"
+        ws.Range("BE2").Formula = "=DATE(MID(D2, 6, 4), VLOOKUP(MID(D2, 3, 3), $BI$2:$BJ$13, 2, FALSE), LEFT(D2, 2))"
+        ws.Range("BF2").Formula = "=DATE(MID(E2, 6, 4), VLOOKUP(MID(E2, 3, 3), $BI$2:$BJ$13, 2, FALSE), LEFT(E2, 2))"
+        
+        'Drop the formulas down to give us our full data set
+        ws.Range("BD2:BF2").AutoFill Destination:=ws.Range("BD2:BF" & rowCount)
+        
+        'Wait for the formulas to finish calculating
+        Application.Calculate
+        Do While Not Application.CalculationState = xlDone
+            DoEvents
+        Loop
+        
+        'Copy+Paste the values from the formulas over the necessary columns
+        ws.Range("BD2:BF" & rowCount).Copy
+        ws.Range("C2").PasteSpecial xlPasteValues
+    
+        'Erase the vlookup table and formula columns
+        ws.Range("BD:BJ").Columns.Delete
+        
+        'Save and close the book
+        wb.Close savechanges:=True
+        
+        'Clean up our variables to be ready for the next file
+        Set wb = Nothing
+        Set ws = Nothing
+    Next j
+    
+    'Turn off efficiency piece
+    Application.ScreenUpdating = True
+    
+End Sub
+
+Private Function PopulateTheArray() As Variant
+    Dim arrMonth(1 To 2, 1 To 12) As String
+    
+    'Simply adding the needed values to the array so we can loop through and add it to the worksheet
+    arrMonth(1, 1) = "JAN"
+    arrMonth(1, 2) = "FEB"
+    arrMonth(1, 3) = "MAR"
+    arrMonth(1, 4) = "APR"
+    arrMonth(1, 5) = "MAY"
+    arrMonth(1, 6) = "JUN"
+    arrMonth(1, 7) = "JUL"
+    arrMonth(1, 8) = "AUG"
+    arrMonth(1, 9) = "SEP"
+    arrMonth(1, 10) = "OCT"
+    arrMonth(1, 11) = "NOV"
+    arrMonth(1, 12) = "DEC"
+    arrMonth(2, 1) = "1"
+    arrMonth(2, 2) = "2"
+    arrMonth(2, 3) = "3"
+    arrMonth(2, 4) = "4"
+    arrMonth(2, 5) = "5"
+    arrMonth(2, 6) = "6"
+    arrMonth(2, 7) = "7"
+    arrMonth(2, 8) = "8"
+    arrMonth(2, 9) = "9"
+    arrMonth(2, 10) = "10"
+    arrMonth(2, 11) = "11"
+    arrMonth(2, 12) = "12"
+    
+    'Return the array
+    PopulateTheArray = arrMonth
+
+End Function
+
