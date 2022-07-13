@@ -1,0 +1,16 @@
+'This is a really simple piece of code, but it's also very powerful
+'This allows us to pass any string and have the special characters shown in the list removed from that string
+
+Public Function removeSpecialCharacters(sInput As String) As String
+
+    Dim sSpecialChars As String
+    Dim i As Long
+    
+    sSpecialChars = "\/:*?""<>|'[]$`"
+    For i = 1 To Len(sSpecialChars)
+        sInput = Replace$(sInput, Mid$(sSpecialChars, i, 1), " ")
+    Next
+    
+    removeSpecial = sInput
+    
+End Function
