@@ -1,0 +1,47 @@
+'When we're looking at VBA, it can be helpful to have a list of items, or a value/key pair 
+'Now, you might say, "But wait we have arrays!", and that's true, but collections and dictionaries have their own pros and cons. 
+
+'Collections=====================================================================
+'Uses a key/value pairing to allow for selection by either
+'One pro of a collection over an array is that it does the resizing on the fly, so if we add or remove an item from the list
+' we don't have to care for it, nor do we need to worry about empty cells of the colleciton. It is always the correct size. 
+
+'Here we're declaring and creating a collection
+Dim colFruit as New Collection
+
+'The collection object doesn't have a 'Clear' or 'RemoveAll' from the list, so instead we can do this to clear the collection
+Set colFruit = New Collection
+
+'Here's how we would add an item
+'Syntax: col.Add item, key, before, after
+colFruit.Add "Apple"
+colFruit.Add "Orange"
+
+'Here we're adding the "Lime" object before the Orange
+colFruit.Add "Lime", Before:=2
+
+'When we access the items, we have a couple of different methods
+Debug.Print colFruit(1) 'This will print Apple
+'or
+Debug.Print colFruit.Item(1)
+
+'When adding items, we can choose to give them keys that we can refer to later
+colScores.Add 99, "Billy"
+colScores.Add 75, "Jimmy"
+colScores.Add 86, "Sally"
+
+'Which then gives us another method to refer to the item 
+Debug.Print colScores("Billy") 'This would print 99
+
+'One of the cons of a collection is that we can't change values once assigned, but we can remove items
+colFruit.Remove "Orange"
+'=================================================================================
+
+
+'Dictionaries=====================================================================
+//Need to do
+
+
+
+
+'=================================================================================
