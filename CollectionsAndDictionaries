@@ -39,9 +39,25 @@ colFruit.Remove "Orange"
 
 
 'Dictionaries=====================================================================
-//Need to do
+'With the functionality of collections and arrays, it's hard to see the need for dictionaries
+'However, dictionaries have 2 major advantages over collections. 1, We can check if a key exists 
+' without writing an extra loop. 2, We can change the value once it's written.
 
+'Here we're creating a new dictionary
+Dim dictVeggies As New Scripting.Dictionary
 
+'Adding some values, a couple of different ways
+dictVeggies.Add key:="Squash", Item:=27
+dictVeggies.Add "Tomato", 15
 
+'Here we're checking if a value already exists
+If dictVeggies.Exists("Cucumber") Then 
+  msgbox("It already exists!") 
+Else 
+  dictVeggies.Add key:="Cucumber", Item:=5 
+End If
+
+'Here we can change the value
+dictVeggies("Squash") = 32
 
 '=================================================================================
