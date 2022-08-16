@@ -1,0 +1,35 @@
+'Binding is the process of assigning an object to an identifier (think of giving a generic object the Database Object type, or recordset type) or variable name. 
+'Early Binding is when you declare an object as the specific object type immediately
+'Late Binding is the process of creating an object with no specific type, then right before it is used the object is assigned an object type or properties
+
+'Early Binding vs Late Binding:
+' + Early binding is faster during run-time because it is able to accomplish the necessary tasks on load, rather than while the code is running.
+' + Early binding offers additional functionality through identification
+' + Can offer additional type checking and can reduce errors, depending on the code structure
+' + The Visual Basic Editor has a helpful capitalization corrector when early binding, but it is not available in late binding
+' + Late binding gives you flexibility with your objects, especially if you're not sure what the object will need to be 
+'   - Think of a program that must connect to different types of databases and will need to become a certain object based on input from the user
+
+'Early/Late Binding Examples:
+Private Sub ExampleCode()
+  Dim wb as Excel.Workbook: Set wb = ThisWorkbook 'Here we're using early binding to assign the workbook and worksheet
+  Dim ws as Excel.Worksheet: Set ws = wb.Sheets(1)
+  Dim k as Variant, dict as Object 'Here we're using late-binding for our k and dict variables
+  
+  Set dict = CreateObject("Scripting.Dictionary") 'Hhere we're actually binding the object to a type
+  dict.comparemode = vbTextCompare          'non-case sensitive compare model
+    
+  'populate the dictionary
+  dict.Add Key:="Blue", Item:="Car"
+  dict.Add Key:="Green", Item:="Car"
+  dict.Add Key:="Purple", Item:="Car"
+
+  'iterate through the keys
+  For Each k In dict.Keys
+      Debug.Print k & " - " & dict.Item(k)
+  Next k
+
+  dict.Remove "blue"      'remove individual key/item pair by key
+  dict.RemoveAll          'remove all remaining key/item pairs
+End Sub
+
